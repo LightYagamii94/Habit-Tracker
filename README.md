@@ -18,7 +18,7 @@ Ogni push su `main` pubblica l'app su GitHub Pages (`.github/workflows/deploy.ym
 Da attivare una volta: **Settings → Pages → Source: GitHub Actions**, e `main` come branch predefinito
 (**Settings → General → Default branch**) e ammesso in **Settings → Environments → github-pages**.
 
-Per installarla sul telefono apri il sito e usa *Aggiungi a schermata Home* (su iPhone da Safari, su Android da Chrome).
+Per installarla sul telefono apri il sito e tocca **Installa** nella schermata Oggi (Chrome, Brave, Edge su Android). Su iPhone: Safari → Condividi → *Aggiungi alla schermata Home*.
 
 ## Progetto
 

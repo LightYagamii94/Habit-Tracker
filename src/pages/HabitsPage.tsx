@@ -4,6 +4,7 @@ import { db } from '../db';
 import type { Habit } from '../types';
 import { scheduleLabel } from '../lib/habits';
 import { moveHabit } from '../data/repo';
+import { InstallButton } from '../components/InstallBanner';
 import { IconChevronDown, IconChevronRight, IconChevronUp, IconPlus } from '../components/icons';
 
 const TYPE_LABEL: Record<Habit['type'], string> = {
@@ -76,6 +77,8 @@ export function HabitsPage() {
           </ul>
         </section>
       )}
+
+      <InstallButton />
     </div>
   );
 }

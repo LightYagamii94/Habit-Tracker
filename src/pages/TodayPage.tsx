@@ -8,6 +8,7 @@ import { buildDayItems, dayProgress } from '../lib/habits';
 import { habitStats } from '../lib/stats';
 import { useToday } from '../lib/useToday';
 import { HabitCard } from '../components/HabitCard';
+import { InstallBanner } from '../components/InstallBanner';
 import { ProgressRing } from '../components/ProgressRing';
 import { WeekStrip } from '../components/WeekStrip';
 import { IconCalendar, IconChevronDown, IconPlus } from '../components/icons';
@@ -91,6 +92,8 @@ export function TodayPage() {
           </label>
         </div>
       </header>
+
+      <InstallBanner />
 
       <WeekStrip selected={selected} today={today} progress={weekProgress} onSelect={select} />
 
