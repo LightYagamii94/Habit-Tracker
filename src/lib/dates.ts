@@ -1,4 +1,4 @@
-import { addDays, format, parseISO, startOfWeek } from 'date-fns';
+import { addDays, addMonths, format, parseISO, startOfWeek } from 'date-fns';
 import { it } from 'date-fns/locale';
 import type { DateKey } from '../types';
 
@@ -38,4 +38,18 @@ export const relativeDayLabel = (k: DateKey, today: DateKey): string => {
   if (k === today) return 'Oggi';
   if (k === addDaysKey(today, -1)) return 'Ieri';
   return k.slice(0, 4) === today.slice(0, 4) ? formatLong(k) : formatLongWithYear(k);
+};
+
+/** First day of the month, as a date key. */
+export const monthStartKey = (k: DateKey): DateKey => `${k.slice(0, 7)}-01`;
+export const addMonthsKey = (k: DateKey, n: number): DateKey => toKey(addMonths(fromKey(monthStartKey(k)), n));
+export const formatMonth = (k: DateKey): string => capitalize(format(fromKey(k), 'LLLL yyyy', { locale: it }));
+
+/** Days of the month in a Monday-first grid, padded with nulls. */
+export const monthGrid = (k: DateKey): (DateKey | null)[] => {
+  const first = monthStartKey(k);
+  const cells: (DateKey | null)[] = Array.from({ length: isoWeekday(first) - 1 }, () => null);
+  for (let d = first; d.slice(0, 7) === first.slice(0, 7); d = addDaysKey(d, 1)) cells.push(d);
+  while (cells.length % 7) cells.push(null);
+  return cells;
 };

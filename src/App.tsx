@@ -1,5 +1,6 @@
 import { HashRouter, Navigate, Route, Routes } from 'react-router-dom';
 import { BottomNav } from './components/BottomNav';
+import { HabitDetailPage } from './pages/HabitDetailPage';
 import { HabitFormPage } from './pages/HabitFormPage';
 import { HabitsPage } from './pages/HabitsPage';
 import { TodayPage } from './pages/TodayPage';
@@ -13,7 +14,8 @@ export function App() {
           <Route path="/" element={<TodayPage />} />
           <Route path="/abitudini" element={<HabitsPage />} />
           <Route path="/abitudini/nuova" element={<HabitFormPage key="new" />} />
-          <Route path="/abitudini/:id" element={<HabitFormPage />} />
+          <Route path="/abitudini/:id" element={<HabitDetailPage />} />
+          <Route path="/abitudini/:id/modifica" element={<HabitFormPage />} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </main>

@@ -83,7 +83,8 @@ export function HabitFormPage() {
     });
   }, [id, isNew]);
 
-  const goBack = () => (location.key !== 'default' ? navigate(-1) : navigate('/abitudini', { replace: true }));
+  const goBack = () =>
+    location.key !== 'default' ? navigate(-1) : navigate(isNew ? '/' : `/abitudini/${id}`, { replace: true });
 
   if (notFound) {
     return (
