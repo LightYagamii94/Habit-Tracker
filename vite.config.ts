@@ -13,6 +13,7 @@ export default defineConfig({
       registerType: 'autoUpdate',
       includeAssets: ['favicon.ico', 'apple-touch-icon-180x180.png', 'icon.svg'],
       manifest: {
+        id: './',
         name: 'Habit Tracker',
         short_name: 'Abitudini',
         description: 'Il tuo habit tracker personale',
