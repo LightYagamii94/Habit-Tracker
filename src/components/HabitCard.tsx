@@ -10,11 +10,13 @@ import { IconCheck, IconMinus, IconPlus, IconX } from './icons';
 interface Props {
   item: DayItem;
   date: DateKey;
+  /** Current streak, shown as a badge when above zero. */
+  streak?: { value: number; period: 'day' | 'week' };
 }
 
 const formatNumber = (n: number) => n.toLocaleString('it-IT', { maximumFractionDigits: 2 });
 
-export function HabitCard({ item, date }: Props) {
+export function HabitCard({ item, date, streak }: Props) {
   const { habit, value, done, weekCount } = item;
   const save = (v: number) => {
     vibrate();
@@ -55,8 +57,19 @@ export function HabitCard({ item, date }: Props) {
             {habit.icon}
           </span>
           <span className="min-w-0">
-            <span className={`block truncate font-semibold ${done && habit.type === 'boolean' ? 'text-zinc-400' : ''}`}>
-              {habit.name}
+            <span className="flex items-center gap-2">
+              <span className={`truncate font-semibold ${done && habit.type === 'boolean' ? 'text-zinc-400' : ''}`}>
+                {habit.name}
+              </span>
+              {streak && streak.value > 0 && (
+                <span
+                  className="shrink-0 rounded-full bg-orange-400/10 px-1.5 py-0.5 text-xs font-semibold tabular-nums text-orange-300"
+                  aria-label={`Serie di ${streak.value} ${streak.period === 'week' ? 'settimane' : 'giorni'}`}
+                >
+                  🔥 {streak.value}
+                  {streak.period === 'week' ? ' sett.' : ''}
+                </span>
+              )}
             </span>
             <span
               className={`block truncate text-sm ${

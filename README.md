@@ -15,7 +15,8 @@ npm run icons      # rigenera le icone da public/icon.svg
 ## Pubblicazione
 
 Ogni push su `main` pubblica l'app su GitHub Pages (`.github/workflows/deploy.yml`).
-Da attivare una volta: **Settings → Pages → Source: GitHub Actions**.
+Da attivare una volta: **Settings → Pages → Source: GitHub Actions**, e `main` come branch predefinito
+(**Settings → General → Default branch**) e ammesso in **Settings → Environments → github-pages**.
 
 Per installarla sul telefono apri il sito e usa *Aggiungi a schermata Home* (su iPhone da Safari, su Android da Chrome).
 
@@ -40,10 +41,13 @@ React + TypeScript + Vite + Tailwind, Dexie (IndexedDB), date-fns, vite-plugin-p
 - Da evitare: la streak conta i giorni dall'ultima ricaduta.
 - Si può modificare qualsiasi giorno passato. Per registrare giorni precedenti alla creazione si anticipa la data di inizio.
 - Il tipo di un'abitudine non si può cambiare dopo la creazione (cambierebbe il significato dei dati).
+- Streak (`src/lib/stats.ts`): oggi, se non ancora fatto, non interrompe la serie; una ricaduta registrata oggi sì.
+  Per "N volte a settimana" la settimana in corso conta solo quando l'obiettivo è raggiunto;
+  una prima settimana parziale richiede al massimo tanti giorni quanti ne ha.
 
 ### Fasi
 1. ✅ Struttura, gestione abitudini, schermata Oggi, PWA
-2. Streak, calendario, dettaglio abitudine
+2. ✅ Streak, calendario, dettaglio abitudine
 3. Statistiche, grafici, note e umore
 4. Backup JSON (export/import), rifinitura, promemoria dentro l'app
 5. (opzionale) Notifiche push tramite un piccolo server (es. Cloudflare Worker) che conosce solo gli orari

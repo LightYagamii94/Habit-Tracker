@@ -5,6 +5,7 @@ import { db } from '../db';
 import type { DateKey } from '../types';
 import { addDaysKey, DATE_KEY_RE, formatLongWithYear, relativeDayLabel, weekKeys, weekStartKey } from '../lib/dates';
 import { buildDayItems, dayProgress } from '../lib/habits';
+import { habitStats } from '../lib/stats';
 import { useToday } from '../lib/useToday';
 import { HabitCard } from '../components/HabitCard';
 import { ProgressRing } from '../components/ProgressRing';
@@ -21,33 +22,39 @@ export function TodayPage() {
   const weekStart = weekStartKey(selected);
   const weekEnd = addDaysKey(weekStart, 6);
   const habits = useLiveQuery(() => db.habits.toArray(), []);
-  const entries = useLiveQuery(
-    () => db.entries.where('date').between(weekStart, weekEnd, true, true).toArray(),
-    [weekStart, weekEnd],
-  );
+  // All entries: the week drives the view, the full history drives the streaks.
+  const entries = useLiveQuery(() => db.entries.toArray(), []);
 
   const [showOthers, setShowOthers] = useState(false);
 
   const view = useMemo(() => {
     if (!habits || !entries) return null;
-    const items = buildDayItems(habits, entries, selected);
+    const weekEntries = entries.filter((e) => e.date >= weekStart && e.date <= weekEnd);
+    const items = buildDayItems(habits, weekEntries, selected);
+    const streaks = new Map(
+      items.map(({ habit }) => {
+        const s = habitStats(habit, entries, today);
+        return [habit.id, { value: s.current, period: s.period }];
+      }),
+    );
     const weekProgress: Record<DateKey, number | null> = {};
     for (const d of weekKeys(selected)) {
-      const p = dayProgress(buildDayItems(habits, entries, d));
+      const p = dayProgress(buildDayItems(habits, weekEntries, d));
       weekProgress[d] = d <= today && p.due ? p.done / p.due : null;
     }
     return {
       due: items.filter((i) => i.due),
       others: items.filter((i) => !i.due),
+      streaks,
       progress: dayProgress(items),
       isEmptyDay: items.length === 0,
       weekProgress,
       hasHabits: habits.some((h) => h.archivedAt === null),
     };
-  }, [habits, entries, selected, today]);
+  }, [habits, entries, selected, today, weekStart, weekEnd]);
 
   if (!view) return null;
-  const { due, others, progress, isEmptyDay, weekProgress, hasHabits } = view;
+  const { due, others, streaks, progress, isEmptyDay, weekProgress, hasHabits } = view;
   const remaining = progress.due - progress.done;
   const label = relativeDayLabel(selected, today);
 
@@ -124,7 +131,7 @@ export function TodayPage() {
 
           <section className="space-y-2.5">
             {due.map((item) => (
-              <HabitCard key={item.habit.id} item={item} date={selected} />
+              <HabitCard key={item.habit.id} item={item} date={selected} streak={streaks.get(item.habit.id)} />
             ))}
           </section>
 
@@ -141,7 +148,7 @@ export function TodayPage() {
               {showOthers && (
                 <div className="space-y-2.5 opacity-70">
                   {others.map((item) => (
-                    <HabitCard key={item.habit.id} item={item} date={selected} />
+                    <HabitCard key={item.habit.id} item={item} date={selected} streak={streaks.get(item.habit.id)} />
                   ))}
                 </div>
               )}

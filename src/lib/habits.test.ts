@@ -133,3 +133,15 @@ describe('buildDayItems', () => {
     expect(dayProgress(buildDayItems(habits, entries, '2026-10-19'))).toEqual({ done: 1, due: 2 });
   });
 });
+
+describe('month helpers', () => {
+  it('builds a Monday-first grid', async () => {
+    const { monthGrid, addMonthsKey, formatMonth } = await import('./dates');
+    const grid = monthGrid('2026-10-19'); // October 2026 starts on Thursday
+    expect(grid.slice(0, 4)).toEqual([null, null, null, '2026-10-01']);
+    expect(grid.filter(Boolean)).toHaveLength(31);
+    expect(grid.length % 7).toBe(0);
+    expect(addMonthsKey('2026-01-31', 1)).toBe('2026-02-01');
+    expect(formatMonth('2026-10-19')).toBe('Ottobre 2026');
+  });
+});
