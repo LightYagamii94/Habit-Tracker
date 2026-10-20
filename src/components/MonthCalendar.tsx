@@ -2,6 +2,7 @@ import type { CSSProperties } from 'react';
 import type { DateKey, Habit } from '../types';
 import { addMonthsKey, dayOfMonth, formatMonth, monthGrid, monthStartKey, WEEKDAY_LETTERS } from '../lib/dates';
 import { hasLimit, isActiveOn, isDone, isScheduledOn } from '../lib/habits';
+import { rulesOn } from '../lib/rules';
 import { IconChevronLeft, IconChevronRight } from './icons';
 
 interface Props {
@@ -54,7 +55,7 @@ export function MonthCalendar({ habit, values, month, today, onMonthChange, onDa
 }
 
 function DayCell({
-  habit,
+  habit: base,
   date,
   value,
   today,
@@ -66,6 +67,7 @@ function DayCell({
   today: DateKey;
   onClick: (d: DateKey) => void;
 }) {
+  const habit = rulesOn(base, date); // each day with the rules in force then
   const editable = date <= today && isActiveOn(habit, date);
   const scheduled = isScheduledOn(habit, date);
   const done = isDone(habit, value);

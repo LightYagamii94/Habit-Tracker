@@ -2,9 +2,10 @@ import { useMemo, useState, type ReactNode } from 'react';
 import { Link, useLocation, useNavigate, useParams } from 'react-router-dom';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { db } from '../db';
-import type { DateKey } from '../types';
-import { monthStartKey, relativeDayLabel } from '../lib/dates';
+import { formatLong, formatLongWithYear, monthStartKey, relativeDayLabel } from '../lib/dates';
 import { hasLimit, scheduleLabel } from '../lib/habits';
+import { rulesOn } from '../lib/rules';
+import type { DateKey, Habit, Rules } from '../types';
 import { habitStats, streakLabel } from '../lib/stats';
 import { setEntry } from '../data/repo';
 import { vibrate } from '../lib/presets';
@@ -47,7 +48,7 @@ export function HabitDetailPage() {
 
   const onDayClick = (d: DateKey) => {
     const value = values.get(d) ?? 0;
-    if (habit.type === 'quantity' || hasLimit(habit)) return setEditingDay(d);
+    if (habit.type === 'quantity' || hasLimit(rulesOn(habit, d))) return setEditingDay(d);
     vibrate();
     void setEntry(habit.id, d, value > 0 ? 0 : 1);
   };
@@ -150,9 +151,11 @@ export function HabitDetailPage() {
         </p>
       </section>
 
+      {habit.history && habit.history.length > 0 && <RulesHistory habit={habit} today={today} />}
+
       {editingDay && (
         <QuantityDialog
-          habit={habit}
+          habit={rulesOn(habit, editingDay)}
           title={relativeDayLabel(editingDay, today)}
           initial={values.get(editingDay) ?? 0}
           onClose={() => setEditingDay(null)}
@@ -163,6 +166,44 @@ export function HabitDetailPage() {
         />
       )}
     </div>
+  );
+}
+
+const rulesLabel = (h: Habit, r: Rules) => {
+  let label = scheduleLabel(r.schedule);
+  if (h.type === 'quantity') label += ` · ${r.target} ${h.unit ?? ''}`;
+  if (h.type === 'negative') label += (r.limit ?? 0) > 0 ? ` · max ${r.limit} al giorno` : ' · nessuna concessione';
+  return label.trim();
+};
+
+/** Past rule changes, newest first: each period is judged by the rules it had. */
+function RulesHistory({ habit, today }: { habit: Habit; today: DateKey }) {
+  const changes = habit.history ?? [];
+  const periods = [
+    { from: changes.at(-1)!.until, rules: habit as Rules, current: true },
+    ...changes
+      .map((c, i) => ({ from: i === 0 ? habit.startDate : changes[i - 1].until, rules: c as Rules, current: false }))
+      .reverse(),
+  ];
+  return (
+    <section className="rounded-3xl bg-zinc-900 p-4 ring-1 ring-white/5">
+      <h2 className="font-semibold">Storico delle regole</h2>
+      <p className="mt-1 text-sm text-zinc-400">Ogni periodo è valutato con le regole che aveva.</p>
+      <ol className="mt-3 space-y-2">
+        {periods.map((p) => (
+          <li key={p.from} className="flex gap-3 text-sm">
+            <span className={`mt-1.5 size-2 shrink-0 rounded-full ${p.current ? 'bg-emerald-400' : 'bg-zinc-600'}`} />
+            <span>
+              <span className="block text-zinc-500">
+                Dal {(p.from.slice(0, 4) === today.slice(0, 4) ? formatLong(p.from) : formatLongWithYear(p.from)).toLowerCase()}
+                {p.current ? ' · regole attuali' : ''}
+              </span>
+              <span className={p.current ? 'font-medium' : 'text-zinc-300'}>{rulesLabel(habit, p.rules)}</span>
+            </span>
+          </li>
+        ))}
+      </ol>
+    </section>
   );
 }
 

@@ -43,6 +43,9 @@ React + TypeScript + Vite + Tailwind, Dexie (IndexedDB), date-fns, vite-plugin-p
   il limite; senza limite basta una ricaduta. La serie conta i giorni consecutivi riusciti.
 - Si può modificare qualsiasi giorno passato. Per registrare giorni precedenti alla creazione si anticipa la data di inizio.
 - Il tipo di un'abitudine non si può cambiare dopo la creazione (cambierebbe il significato dei dati).
+- Storico delle regole (`src/lib/rules.ts`): cambiare frequenza, obiettivo o limite vale da oggi in avanti
+  (da lunedì della settimana in corso se c'entra "N volte a settimana"); le regole precedenti restano in `history`
+  con la data `until` e ogni giorno passato è valutato con le regole di allora. Nome, icona e colore valgono sempre.
 - Streak (`src/lib/stats.ts`): oggi, se non ancora fatto, non interrompe la serie; una ricaduta registrata oggi sì.
   Per "N volte a settimana" la settimana in corso conta solo quando l'obiettivo è raggiunto;
   una prima settimana parziale richiede al massimo tanti giorni quanti ne ha.

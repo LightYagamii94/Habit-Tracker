@@ -310,7 +310,14 @@ export function HabitFormPage() {
         </Field>
       )}
 
-      <Field label="Frequenza">
+      <Field
+        label="Frequenza"
+        hint={
+          isNew
+            ? undefined
+            : 'Se cambi frequenza, obiettivo o limite, le nuove regole valgono da oggi (da lunedì per "N a settimana"): i giorni passati restano valutati con quelle di prima.'
+        }
+      >
         <div className="grid grid-cols-3 gap-1 rounded-2xl bg-zinc-900 p-1 ring-1 ring-white/5">
           {SCHEDULES.filter((s) => !(form.type === 'negative' && s.value === 'timesPerWeek')).map((s) => (
             <button
