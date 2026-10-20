@@ -33,6 +33,22 @@ describe('backup', () => {
     expect(parsed.habits[0]).toMatchObject({ type: 'negative', limit: 1, unit: 'dolci' });
   });
 
+  it('keeps the history of rule changes', () => {
+    const gym: Habit = {
+      ...habit,
+      id: 'g',
+      type: 'boolean',
+      target: undefined,
+      unit: undefined,
+      schedule: { kind: 'timesPerWeek', times: 3 },
+      history: [{ until: '2026-10-12', schedule: { kind: 'timesPerWeek', times: 2 } }],
+    };
+    const parsed = parseBackup(JSON.stringify(makeBackup([gym], [], [])));
+    expect(parsed.habits[0].history).toEqual([
+      { until: '2026-10-12', schedule: { kind: 'timesPerWeek', times: 2 }, target: undefined, limit: undefined },
+    ]);
+  });
+
   it('rejects files that are not backups', () => {
     expect(() => parseBackup('ciao')).toThrow(BackupError);
     expect(() => parseBackup('{"app":"spese"}')).toThrow('non è un backup di Habit Tracker');

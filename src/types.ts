@@ -35,6 +35,23 @@ export interface Habit {
   createdAt: string;
   /** "HH:MM": from this time the app shows a reminder if the habit is not done yet. */
   reminderTime?: string;
+  /**
+   * Earlier rules, oldest first. Each one applied to the days before its `until` date
+   * (and after the previous change); `schedule`, `target` and `limit` above apply from the last `until` on.
+   */
+  history?: RuleChange[];
+}
+
+/** The settings that decide whether a day succeeds. */
+export interface Rules {
+  schedule: Schedule;
+  target?: number;
+  limit?: number;
+}
+
+export interface RuleChange extends Rules {
+  /** First day on which these rules no longer applied. */
+  until: DateKey;
 }
 
 /**

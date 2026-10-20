@@ -1,4 +1,4 @@
-import type { DateKey, DayNote, Entry, Habit, Schedule } from '../types';
+import type { DateKey, DayNote, Entry, Habit, RuleChange, Schedule } from '../types';
 import { DATE_KEY_RE } from './dates';
 
 export const BACKUP_APP = 'habit-tracker';
@@ -40,6 +40,22 @@ function parseSchedule(v: unknown): Schedule | null {
   return null;
 }
 
+function parseHistory(v: unknown, type: Habit['type']): RuleChange[] | undefined {
+  if (!Array.isArray(v)) return undefined;
+  const changes: RuleChange[] = [];
+  for (const c of v) {
+    if (!isObj(c) || !isDate(c.until)) continue;
+    const schedule = parseSchedule(c.schedule);
+    if (!schedule) continue;
+    const target = type === 'quantity' && isNum(c.target) && c.target > 0 ? c.target : undefined;
+    if (type === 'quantity' && target === undefined) continue;
+    const limit = type === 'negative' && Number.isInteger(c.limit) && (c.limit as number) > 0 ? (c.limit as number) : undefined;
+    changes.push({ until: c.until, schedule, target, limit });
+  }
+  changes.sort((a, b) => (a.until < b.until ? -1 : 1));
+  return changes.length ? changes : undefined;
+}
+
 function parseHabit(v: unknown, i: number): Habit {
   const bad = () => new BackupError(`L'abitudine n. ${i + 1} nel file non è valida.`);
   if (!isObj(v) || !isStr(v.id) || !v.id || !isStr(v.name) || !isDate(v.startDate)) throw bad();
@@ -63,6 +79,7 @@ function parseHabit(v: unknown, i: number): Habit {
     order: isNum(v.order) ? v.order : i,
     createdAt: isStr(v.createdAt) ? v.createdAt : new Date().toISOString(),
     reminderTime: isStr(v.reminderTime) && TIME_RE.test(v.reminderTime) ? v.reminderTime : undefined,
+    history: parseHistory(v.history, v.type),
   };
 }
 

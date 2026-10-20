@@ -1,6 +1,7 @@
 import type { DateKey, Entry, Habit } from '../types';
 import { addDaysKey, weekStartKey } from './dates';
-import { isActiveOn, isDone, isScheduledOn } from './habits';
+import { isActiveOn, isDone, isDoneOn, isScheduledOn } from './habits';
+import { rulesOn } from './rules';
 
 export interface HabitStats {
   /** Current streak, in days or weeks (see `period`). */
@@ -50,23 +51,39 @@ export function habitStats(h: Habit, entries: Entry[], today: DateKey): HabitSta
   let relapses = 0;
   let doneCount = 0;
 
+  /** One week judged by the rules in force that week (changes involving weekly goals start on a Monday). */
+  const judgeWeek = (ws: DateKey) => {
+    const rules = rulesOn(h, ws < h.startDate ? h.startDate : ws);
+    let count = 0;
+    let activeDays = 0;
+    let scheduled = 0;
+    let scheduledDone = 0;
+    for (let i = 0; i < 7; i++) {
+      const d = addDaysKey(ws, i);
+      if (!isActiveOn(h, d)) continue;
+      activeDays++;
+      const ok = d <= end && isDoneOn(h, d, valueOf(d));
+      if (ok) count++;
+      if (isScheduledOn(h, d)) {
+        scheduled++;
+        if (ok) scheduledDone++;
+      }
+    }
+    const met =
+      rules.schedule.kind === 'timesPerWeek'
+        ? count >= Math.min(rules.schedule.times, activeDays)
+        : scheduledDone === scheduled; // a week from a daily period succeeds when every scheduled day was done
+    return { met, count, open: addDaysKey(ws, 6) >= today && !met };
+  };
+
+  // The current rules decide the unit: weeks for "N times per week", days otherwise.
   if (h.schedule.kind === 'timesPerWeek') {
-    const times = h.schedule.times;
     const weeks: boolean[] = [];
     if (h.startDate <= end) {
       for (let ws = weekStartKey(h.startDate); ws <= end; ws = addDaysKey(ws, 7)) {
-        let count = 0;
-        let activeDays = 0;
-        for (let i = 0; i < 7; i++) {
-          const d = addDaysKey(ws, i);
-          if (!isActiveOn(h, d)) continue;
-          activeDays++;
-          if (d <= end && isDone(h, valueOf(d))) count++;
-        }
-        doneCount += count;
-        const met = count >= Math.min(times, activeDays);
-        const stillOpen = addDaysKey(ws, 6) >= today && !met;
-        if (!stillOpen) weeks.push(met);
+        const w = judgeWeek(ws);
+        doneCount += w.count;
+        if (!w.open) weeks.push(w.met);
       }
     }
     const { current, best } = runs(weeks);
@@ -76,9 +93,25 @@ export function habitStats(h: Habit, entries: Entry[], today: DateKey): HabitSta
 
   const results: { date: DateKey; done: boolean }[] = [];
   for (let d = h.startDate; d <= end; d = addDaysKey(d, 1)) {
-    if (!isScheduledOn(h, d)) continue;
+    const rules = rulesOn(h, d);
     const value = valueOf(d);
-    const done = isDone(h, value);
+    const done = isDone(rules, value);
+
+    if (rules.schedule.kind === 'timesPerWeek') {
+      // A past weekly period inside a daily streak: done days count, and a missed week counts once, on its last day.
+      if (done) {
+        doneCount++;
+        results.push({ date: d, done: true });
+      }
+      const ws = weekStartKey(d);
+      if (d === addDaysKey(ws, 6) || d === end) {
+        const w = judgeWeek(ws);
+        if (!w.met && !w.open) results.push({ date: d, done: false });
+      }
+      continue;
+    }
+
+    if (!isScheduledOn(h, d)) continue;
     if (h.type === 'negative' && !done) relapses++;
     if (done) doneCount++;
     results.push({ date: d, done });

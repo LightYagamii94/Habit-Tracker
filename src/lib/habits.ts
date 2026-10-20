@@ -1,21 +1,26 @@
 import type { DateKey, Entry, Habit, Schedule } from '../types';
 import { isoWeekday, weekKeys, WEEKDAY_SHORT } from './dates';
+import { rulesOn } from './rules';
 
 export const isActiveOn = (h: Habit, date: DateKey): boolean =>
   h.startDate <= date && (h.archivedAt === null || date < h.archivedAt);
 
-/** Whether the schedule includes this day. "N times per week" habits can be done on any day. */
+/** Whether the schedule in force that day includes it. "N times per week" habits can be done on any day. */
 export const isScheduledOn = (h: Habit, date: DateKey): boolean => {
-  switch (h.schedule.kind) {
+  const { schedule } = rulesOn(h, date);
+  switch (schedule.kind) {
     case 'daily':
     case 'timesPerWeek':
       return true;
     case 'weekdays':
-      return h.schedule.days.includes(isoWeekday(date));
+      return schedule.days.includes(isoWeekday(date));
   }
 };
 
-/** Whether the day counts as a success for the habit, given that day's value (0 if no entry). */
+/**
+ * Whether a value counts as a success under the habit's rules (0 if no entry).
+ * For a past day pass `rulesOn(habit, day)`, or use `isDoneOn`.
+ */
 export const isDone = (h: Habit, value: number): boolean => {
   switch (h.type) {
     case 'boolean':
@@ -26,6 +31,9 @@ export const isDone = (h: Habit, value: number): boolean => {
       return value <= (h.limit ?? 0);
   }
 };
+
+/** Success on a given day, with the rules in force that day. */
+export const isDoneOn = (h: Habit, date: DateKey, value: number): boolean => isDone(rulesOn(h, date), value);
 
 /** A habit to avoid that allows some times a day: it is tracked with a counter. */
 export const hasLimit = (h: Habit): boolean => h.type === 'negative' && (h.limit ?? 0) > 0;
@@ -43,6 +51,7 @@ export const scheduleLabel = (s: Schedule): string => {
 };
 
 export interface DayItem {
+  /** The habit with the rules in force on that day. */
   habit: Habit;
   value: number;
   done: boolean;
@@ -73,13 +82,14 @@ export function buildDayItems(habits: Habit[], entries: Entry[] | EntryIndex, da
   return habits
     .filter((h) => isActiveOn(h, date))
     .sort((a, b) => a.order - b.order)
-    .map((habit) => {
-      const value = valueOf(habit, date);
+    .map((base) => {
+      const habit = rulesOn(base, date);
+      const value = valueOf(base, date);
       const done = isDone(habit, value);
 
       if (habit.schedule.kind === 'timesPerWeek') {
-        const activeDays = week.filter((d) => isActiveOn(habit, d));
-        const weekCount = activeDays.filter((d) => isDone(habit, valueOf(habit, d))).length;
+        const activeDays = week.filter((d) => isActiveOn(base, d));
+        const weekCount = activeDays.filter((d) => isDoneOn(base, d, valueOf(base, d))).length;
         const doneOnOtherDays = weekCount - (done ? 1 : 0);
         // A partial week (start or archive) asks for at most as many days as it has, like the streaks.
         const goal = Math.min(habit.schedule.times, activeDays.length);

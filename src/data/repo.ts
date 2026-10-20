@@ -1,4 +1,6 @@
 import { db } from '../db';
+import { todayKey } from '../lib/dates';
+import { nextHistory } from '../lib/rules';
 import type { DateKey, DayNote, Entry, Habit } from '../types';
 
 export type HabitInput = Omit<Habit, 'id' | 'order' | 'createdAt' | 'archivedAt'>;
@@ -28,8 +30,14 @@ export async function createHabit(input: HabitInput): Promise<string> {
   return habit.id;
 }
 
-export async function updateHabit(id: string, input: Partial<HabitInput>) {
-  await db.habits.update(id, input);
+/** Saves edits. A change of schedule, target or limit applies from today on; earlier days keep the old rules. */
+export async function updateHabit(id: string, input: Partial<HabitInput>, today: DateKey = todayKey()) {
+  await db.transaction('rw', db.habits, async () => {
+    const old = await db.habits.get(id);
+    if (!old) return;
+    const next: Habit = { ...old, ...input };
+    await db.habits.put({ ...next, history: nextHistory(old, next, today) });
+  });
 }
 
 export async function setArchived(id: string, archivedAt: DateKey | null) {
