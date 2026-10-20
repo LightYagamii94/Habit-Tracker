@@ -34,7 +34,7 @@ export function HabitCard({ item, date, streak }: Props) {
     default:
       subtitle =
         habit.schedule.kind === 'timesPerWeek' && weekCount !== null
-          ? `${weekCount}/${habit.schedule.times} questa settimana`
+          ? `${weekCount}/${habit.schedule.times} questa settimana${item.due && !done ? ' · serve oggi' : ''}`
           : scheduleLabel(habit.schedule);
   }
   if (habit.type === 'quantity' && habit.schedule.kind === 'timesPerWeek' && weekCount !== null) {

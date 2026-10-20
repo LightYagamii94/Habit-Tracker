@@ -47,6 +47,8 @@ export interface DayItem {
   due: boolean;
   /** For "N times per week": days done in this week, including this one. */
   weekCount: number | null;
+  /** Can be done today but is not required yet ("N times per week" with time left in the week). */
+  optional: boolean;
 }
 
 const entryKey = (habitId: string, date: DateKey) => `${habitId}|${date}`;
@@ -73,14 +75,19 @@ export function buildDayItems(habits: Habit[], entries: Entry[] | EntryIndex, da
       const done = isDone(habit, value);
 
       if (habit.schedule.kind === 'timesPerWeek') {
-        const weekCount = week.filter((d) => isActiveOn(habit, d) && isDone(habit, valueOf(habit, d))).length;
+        const activeDays = week.filter((d) => isActiveOn(habit, d));
+        const weekCount = activeDays.filter((d) => isDone(habit, valueOf(habit, d))).length;
         const doneOnOtherDays = weekCount - (done ? 1 : 0);
-        // Due until the weekly goal is reached on other days; always counted when done today.
-        const due = done || doneOnOtherDays < habit.schedule.times;
-        return { habit, value, done, due, weekCount };
+        // A partial week (start or archive) asks for at most as many days as it has, like the streaks.
+        const goal = Math.min(habit.schedule.times, activeDays.length);
+        const needed = goal - doneOnOtherDays;
+        const daysLeft = activeDays.filter((d) => d >= date).length;
+        // Required only when it can no longer be postponed; always counted when done.
+        const due = done || (needed > 0 && needed >= daysLeft);
+        return { habit, value, done, due, weekCount, optional: !due && needed > 0 };
       }
 
-      return { habit, value, done, due: isScheduledOn(habit, date), weekCount: null };
+      return { habit, value, done, due: isScheduledOn(habit, date), weekCount: null, optional: false };
     });
 }
 

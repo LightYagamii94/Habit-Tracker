@@ -114,10 +114,34 @@ describe('buildDayItems', () => {
 
     // Goal already met on other days: not due, so it does not lower the progress.
     const wed = buildDayItems([h], entries, '2026-10-21')[0];
-    expect(wed).toMatchObject({ done: false, due: false, weekCount: 2 });
+    expect(wed).toMatchObject({ done: false, due: false, optional: false, weekCount: 2 });
 
+    // Plenty of time left in the week: optional, not required.
     const nextWeek = buildDayItems([h], entries, '2026-10-26')[0];
-    expect(nextWeek).toMatchObject({ done: false, due: true, weekCount: 0 });
+    expect(nextWeek).toMatchObject({ done: false, due: false, optional: true, weekCount: 0 });
+  });
+
+  it('requires "N times per week" only when it can no longer wait', () => {
+    const h = habit({ schedule: { kind: 'timesPerWeek', times: 2 } });
+    // Nothing done this week (Mon 19 – Sun 25).
+    expect(buildDayItems([h], [], '2026-10-23')[0].due).toBe(false); // Fri: 3 days left for 2
+    expect(buildDayItems([h], [], '2026-10-24')[0].due).toBe(true); // Sat: 2 days left for 2
+    expect(buildDayItems([h], [], '2026-10-25')[0].due).toBe(true); // Sun
+
+    // Done once on Monday: needed on Sunday only.
+    const once: Entry[] = [{ habitId: 'h1', date: '2026-10-19', value: 1 }];
+    expect(buildDayItems([h], once, '2026-10-24')[0].due).toBe(false);
+    expect(buildDayItems([h], once, '2026-10-25')[0].due).toBe(true);
+
+    // Done today counts even when not required.
+    const today: Entry[] = [{ habitId: 'h1', date: '2026-10-21', value: 1 }];
+    expect(buildDayItems([h], today, '2026-10-21')[0]).toMatchObject({ done: true, due: true });
+  });
+
+  it('lowers the weekly goal in a partial first week', () => {
+    // Starts on Saturday 24 with a goal of 3: only 2 days, both required.
+    const h = habit({ schedule: { kind: 'timesPerWeek', times: 3 }, startDate: '2026-10-24' });
+    expect(buildDayItems([h], [], '2026-10-24')[0].due).toBe(true);
   });
 
   it('computes progress over due habits only', () => {
