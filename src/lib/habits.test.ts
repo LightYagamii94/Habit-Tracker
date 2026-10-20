@@ -169,3 +169,17 @@ describe('month helpers', () => {
     expect(formatMonth('2026-10-19')).toBe('Ottobre 2026');
   });
 });
+
+describe('negative habits with a daily limit', () => {
+  it('succeeds within the limit and fails above it', () => {
+    const h = habit({ type: 'negative', limit: 1 });
+    expect(isDone(h, 0)).toBe(true);
+    expect(isDone(h, 1)).toBe(true);
+    expect(isDone(h, 2)).toBe(false);
+  });
+
+  it('keeps the old behaviour without a limit', () => {
+    expect(isDone(habit({ type: 'negative' }), 1)).toBe(false);
+    expect(isDone(habit({ type: 'negative', limit: 0 }), 1)).toBe(false);
+  });
+});

@@ -29,7 +29,7 @@ export function QuantityDialog({ habit, title, initial, onSave, onClose }: Props
           {title}
         </h2>
         <p className="text-sm text-zinc-400">
-          Obiettivo: {habit.target} {habit.unit}
+          {habit.type === 'negative' ? `Limite: massimo ${habit.limit} ${habit.unit ?? ''}` : `Obiettivo: ${habit.target} ${habit.unit ?? ''}`}
         </p>
         <div className="mt-5 flex items-center justify-center gap-3">
           <button

@@ -63,6 +63,8 @@ export function TodayPage() {
   if (!view) return null;
   const { due, others, streaks, progress, isEmptyDay, weekProgress, hasHabits } = view;
   const remaining = progress.due - progress.done;
+  // Habits to avoid that already failed today cannot be fixed any more.
+  const fixable = due.filter((i) => i.due && !i.done && i.habit.type !== 'negative').length;
   const reminderOf = (item: (typeof due)[number]) => (selected === today ? reminderState(item, now) : null);
   const overdue = due.filter((i) => reminderOf(i) === 'overdue');
   const label = relativeDayLabel(selected, today);
@@ -128,7 +130,9 @@ export function TodayPage() {
                   ? 'Niente in programma'
                   : remaining === 0
                     ? 'Giornata completata 🎉'
-                    : remaining === 1
+                    : fixable === 0
+                      ? 'Oggi hai sforato'
+                      : remaining === 1
                       ? 'Ne manca una'
                       : `Ne mancano ${remaining}`}
               </p>
@@ -137,7 +141,9 @@ export function TodayPage() {
                   ? 'Goditi la giornata'
                   : remaining === 0
                     ? 'Ottimo lavoro, continua così'
-                    : `${Math.round((progress.done / progress.due) * 100)}% completato`}
+                    : fixable === 0
+                      ? 'Capita: domani si riparte 💪'
+                      : `${Math.round((progress.done / progress.due) * 100)}% completato`}
               </p>
             </div>
           </section>

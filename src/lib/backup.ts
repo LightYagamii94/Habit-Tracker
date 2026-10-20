@@ -47,6 +47,7 @@ function parseHabit(v: unknown, i: number): Habit {
   const schedule = parseSchedule(v.schedule);
   if (!schedule) throw bad();
   if (v.type === 'quantity' && !(isNum(v.target) && v.target > 0)) throw bad();
+  const limit = v.type === 'negative' && Number.isInteger(v.limit) && (v.limit as number) > 0 ? (v.limit as number) : undefined;
   return {
     id: v.id,
     name: v.name,
@@ -54,7 +55,8 @@ function parseHabit(v: unknown, i: number): Habit {
     color: isStr(v.color) && /^#[0-9a-f]{6}$/i.test(v.color) ? v.color : '#34d399',
     type: v.type,
     target: v.type === 'quantity' ? (v.target as number) : undefined,
-    unit: v.type === 'quantity' && isStr(v.unit) ? v.unit : undefined,
+    unit: (v.type === 'quantity' || limit) && isStr(v.unit) ? v.unit : undefined,
+    limit,
     schedule,
     startDate: v.startDate,
     archivedAt: isDate(v.archivedAt) ? v.archivedAt : null,
