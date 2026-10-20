@@ -45,8 +45,9 @@ export function TodayPage() {
       weekProgress[d] = d <= today && p.due ? p.done / p.due : null;
     }
     return {
-      due: items.filter((i) => i.due),
-      others: items.filter((i) => !i.due),
+      // Weekly habits stay in the main list while they can still be done this week.
+      due: items.filter((i) => i.due || i.optional),
+      others: items.filter((i) => !i.due && !i.optional),
       streaks,
       progress: dayProgress(items),
       isEmptyDay: items.length === 0,
