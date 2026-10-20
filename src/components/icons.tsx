@@ -63,3 +63,4 @@ export const IconPencil = icon(
     <path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z" />
   </>,
 );
+export const IconChart = icon(<path d="M3 3v18h18M8 17V11M13 17V7M18 17v-4" />);

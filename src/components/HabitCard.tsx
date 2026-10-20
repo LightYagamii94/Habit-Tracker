@@ -57,26 +57,24 @@ export function HabitCard({ item, date, streak }: Props) {
             {habit.icon}
           </span>
           <span className="min-w-0">
-            <span className="flex items-center gap-2">
-              <span className={`truncate font-semibold ${done && habit.type === 'boolean' ? 'text-zinc-400' : ''}`}>
-                {habit.name}
-              </span>
+            <span className={`block truncate font-semibold ${done && habit.type === 'boolean' ? 'text-zinc-400' : ''}`}>
+              {habit.name}
+            </span>
+            <span className="flex items-center gap-1.5">
               {streak && streak.value > 0 && (
                 <span
-                  className="shrink-0 rounded-full bg-orange-400/10 px-1.5 py-0.5 text-xs font-semibold tabular-nums text-orange-300"
+                  className="shrink-0 rounded-full bg-orange-400/10 px-1.5 text-xs font-semibold tabular-nums text-orange-300"
                   aria-label={`Serie di ${streak.value} ${streak.period === 'week' ? 'settimane' : 'giorni'}`}
                 >
                   🔥 {streak.value}
                   {streak.period === 'week' ? ' sett.' : ''}
                 </span>
               )}
-            </span>
-            <span
-              className={`block truncate text-sm ${
-                habit.type === 'negative' && value > 0 ? 'text-rose-400' : 'text-zinc-500'
-              }`}
-            >
-              {subtitle}
+              <span
+                className={`truncate text-sm ${habit.type === 'negative' && value > 0 ? 'text-rose-400' : 'text-zinc-500'}`}
+              >
+                {subtitle}
+              </span>
             </span>
           </span>
         </Link>

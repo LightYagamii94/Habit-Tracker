@@ -9,6 +9,7 @@ import { habitStats } from '../lib/stats';
 import { useToday } from '../lib/useToday';
 import { HabitCard } from '../components/HabitCard';
 import { InstallBanner } from '../components/InstallBanner';
+import { DayNoteCard } from '../components/DayNoteCard';
 import { ProgressRing } from '../components/ProgressRing';
 import { WeekStrip } from '../components/WeekStrip';
 import { IconCalendar, IconChevronDown, IconPlus } from '../components/icons';
@@ -157,6 +158,8 @@ export function TodayPage() {
               )}
             </section>
           )}
+
+          <DayNoteCard key={selected} date={selected} />
         </>
       )}
     </div>

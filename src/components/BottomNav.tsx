@@ -1,15 +1,16 @@
 import { NavLink } from 'react-router-dom';
-import { IconHome, IconList } from './icons';
+import { IconChart, IconHome, IconList } from './icons';
 
 const links = [
   { to: '/', label: 'Oggi', Icon: IconHome, end: true },
   { to: '/abitudini', label: 'Abitudini', Icon: IconList, end: false },
+  { to: '/statistiche', label: 'Statistiche', Icon: IconChart, end: false },
 ];
 
 export function BottomNav() {
   return (
     <nav className="fixed inset-x-0 bottom-0 z-40 border-t border-white/5 bg-zinc-950/85 pb-[env(safe-area-inset-bottom)] backdrop-blur-xl">
-      <div className="mx-auto grid max-w-md grid-cols-2">
+      <div className="mx-auto grid max-w-md grid-cols-3">
         {links.map(({ to, label, Icon, end }) => (
           <NavLink
             key={to}

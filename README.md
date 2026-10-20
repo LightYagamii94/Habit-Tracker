@@ -31,7 +31,7 @@ React + TypeScript + Vite + Tailwind, Dexie (IndexedDB), date-fns, vite-plugin-p
   - Frequenza: ogni giorno, giorni fissi (1 = lunedì … 7 = domenica), N volte a settimana.
 - **Registrazione**: abitudine + giorno (`YYYY-MM-DD`, ora locale) + valore. Senza registrazione il valore è 0.
   Sì/no: 1 = fatto. Quantità: il numero. Da evitare: 1 = ricaduta.
-- **Nota del giorno**: testo + umore 1–5 (fase 3).
+- **Nota del giorno**: testo + umore 1–5, in fondo alla schermata Oggi.
 
 ### Regole
 - Giornata riuscita: sì/no fatto, quantità ≥ obiettivo, da evitare senza ricadute.
@@ -44,11 +44,13 @@ React + TypeScript + Vite + Tailwind, Dexie (IndexedDB), date-fns, vite-plugin-p
 - Streak (`src/lib/stats.ts`): oggi, se non ancora fatto, non interrompe la serie; una ricaduta registrata oggi sì.
   Per "N volte a settimana" la settimana in corso conta solo quando l'obiettivo è raggiunto;
   una prima settimana parziale richiede al massimo tanti giorni quanti ne ha.
+- Statistiche (`src/lib/insights.ts`): periodo di 7 giorni, 30 giorni, 3 mesi (per settimana) o un anno (per mese).
+  Oggi entra nei totali solo quando è completato; le barre mostrano comunque il progresso di oggi.
 
 ### Fasi
 1. ✅ Struttura, gestione abitudini, schermata Oggi, PWA
 2. ✅ Streak, calendario, dettaglio abitudine
-3. Statistiche, grafici, note e umore
+3. ✅ Statistiche, grafici, note e umore
 4. Backup JSON (export/import), rifinitura, promemoria dentro l'app
 5. (opzionale) Notifiche push tramite un piccolo server (es. Cloudflare Worker) che conosce solo gli orari
 
