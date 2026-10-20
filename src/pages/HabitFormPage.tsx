@@ -6,6 +6,7 @@ import { todayKey, WEEKDAY_SHORT } from '../lib/dates';
 import { COLORS, ICONS } from '../lib/presets';
 import { createHabit, deleteHabit, setArchived, updateHabit, type HabitInput } from '../data/repo';
 import { ConfirmDialog } from '../components/ConfirmDialog';
+import { IconPicker } from '../components/IconPicker';
 import { TIME_RE } from '../lib/backup';
 import { IconArchive, IconCheck, IconChevronLeft, IconMinus, IconPlus, IconRestore, IconTrash } from '../components/icons';
 
@@ -192,27 +193,7 @@ export function HabitFormPage() {
       </div>
 
       <Field label="Icona">
-        <div className="grid grid-cols-8 gap-1.5">
-          {ICONS.map((icon) => (
-            <button
-              key={icon}
-              type="button"
-              onClick={() => set('icon', icon)}
-              className={`grid aspect-square place-items-center rounded-xl text-xl transition-colors ${
-                form.icon === icon ? 'bg-zinc-700 ring-2 ring-white/30' : 'bg-zinc-900 hover:bg-zinc-800'
-              }`}
-            >
-              {icon}
-            </button>
-          ))}
-        </div>
-        <input
-          value={ICONS.includes(form.icon) ? '' : form.icon}
-          onChange={(e) => set('icon', firstGrapheme(e.target.value))}
-          placeholder="…oppure scrivi un'emoji"
-          aria-label="Emoji personalizzata"
-          className="mt-2 h-11 w-full rounded-xl bg-zinc-900 px-3 outline-none ring-1 ring-white/5 placeholder:text-zinc-600 focus:ring-2 focus:ring-emerald-400/60"
-        />
+        <IconPicker value={form.icon} onChange={(icon) => set('icon', icon)} />
       </Field>
 
       <Field label="Colore">
@@ -459,11 +440,4 @@ function Field({ label, hint, children }: { label: string; hint?: string; childr
       {hint && <p className="mt-1.5 px-1 text-xs text-zinc-500">{hint}</p>}
     </div>
   );
-}
-
-function firstGrapheme(s: string): string {
-  const trimmed = s.trim();
-  if (!trimmed) return '';
-  const seg = new Intl.Segmenter('it', { granularity: 'grapheme' }).segment(trimmed);
-  return seg[Symbol.iterator]().next().value?.segment ?? '';
 }
