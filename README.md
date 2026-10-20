@@ -39,7 +39,8 @@ React + TypeScript + Vite + Tailwind, Dexie (IndexedDB), date-fns, vite-plugin-p
 - "N volte a settimana": nel progresso del giorno conta solo quando non si può più rimandare (le volte che mancano
   sono almeno quanti i giorni rimasti nella settimana) oppure quando è fatta. Gli altri giorni resta nella lista di
   Oggi come facoltativa. La serie conta le settimane consecutive riuscite.
-- Da evitare: la streak conta i giorni dall'ultima ricaduta.
+- Da evitare: limite giornaliero facoltativo (`limit`, 0 di default). Il giorno è riuscito finché il conteggio non supera
+  il limite; senza limite basta una ricaduta. La serie conta i giorni consecutivi riusciti.
 - Si può modificare qualsiasi giorno passato. Per registrare giorni precedenti alla creazione si anticipa la data di inizio.
 - Il tipo di un'abitudine non si può cambiare dopo la creazione (cambierebbe il significato dei dati).
 - Streak (`src/lib/stats.ts`): oggi, se non ancora fatto, non interrompe la serie; una ricaduta registrata oggi sì.

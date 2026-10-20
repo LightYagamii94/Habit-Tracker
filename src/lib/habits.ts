@@ -23,9 +23,12 @@ export const isDone = (h: Habit, value: number): boolean => {
     case 'quantity':
       return value >= (h.target ?? 1);
     case 'negative':
-      return value === 0;
+      return value <= (h.limit ?? 0);
   }
 };
+
+/** A habit to avoid that allows some times a day: it is tracked with a counter. */
+export const hasLimit = (h: Habit): boolean => h.type === 'negative' && (h.limit ?? 0) > 0;
 
 export const scheduleLabel = (s: Schedule): string => {
   switch (s.kind) {

@@ -4,7 +4,7 @@ import { useLiveQuery } from 'dexie-react-hooks';
 import { db } from '../db';
 import type { DateKey } from '../types';
 import { monthStartKey, relativeDayLabel } from '../lib/dates';
-import { scheduleLabel } from '../lib/habits';
+import { hasLimit, scheduleLabel } from '../lib/habits';
 import { habitStats, streakLabel } from '../lib/stats';
 import { setEntry } from '../data/repo';
 import { vibrate } from '../lib/presets';
@@ -47,12 +47,13 @@ export function HabitDetailPage() {
 
   const onDayClick = (d: DateKey) => {
     const value = values.get(d) ?? 0;
-    if (habit.type === 'quantity') return setEditingDay(d);
+    if (habit.type === 'quantity' || hasLimit(habit)) return setEditingDay(d);
     vibrate();
     void setEntry(habit.id, d, value > 0 ? 0 : 1);
   };
 
   const isNegative = habit.type === 'negative';
+  const limited = hasLimit(habit);
 
   return (
     <div className="space-y-5">
@@ -85,6 +86,7 @@ export function HabitDetailPage() {
           <p className="truncate text-sm text-zinc-500">
             {TYPE_LABEL[habit.type]} · {scheduleLabel(habit.schedule)}
             {habit.type === 'quantity' && ` · ${habit.target} ${habit.unit ?? ''}`}
+            {limited && ` · max ${habit.limit} ${habit.unit ?? ''} al giorno`}
           </p>
         </div>
       </div>
@@ -98,7 +100,7 @@ export function HabitDetailPage() {
       <section className="grid grid-cols-2 gap-2.5">
         <StatCard
           icon="🔥"
-          label={isNegative ? 'Senza ricadute' : 'Serie attuale'}
+          label={isNegative ? (limited ? 'Entro il limite' : 'Senza ricadute') : 'Serie attuale'}
           value={stats.current}
           unit={streakLabel(stats.current, stats.period).replace(/^\d+ /, '')}
           color={habit.color}
@@ -117,7 +119,12 @@ export function HabitDetailPage() {
           unit={stats.rate === null ? '' : '%'}
         />
         {isNegative ? (
-          <StatCard icon="⚠️" label="Ricadute" value={stats.relapses} unit={stats.relapses === 1 ? 'volta' : 'volte'} />
+          <StatCard
+            icon="⚠️"
+            label={limited ? 'Sforamenti' : 'Ricadute'}
+            value={stats.relapses}
+            unit={limited ? (stats.relapses === 1 ? 'giorno' : 'giorni') : stats.relapses === 1 ? 'volta' : 'volte'}
+          />
         ) : (
           <StatCard icon="📅" label="Totale" value={stats.doneCount} unit={stats.doneCount === 1 ? 'giorno' : 'giorni'} />
         )}
@@ -134,7 +141,9 @@ export function HabitDetailPage() {
         />
         <p className="mt-4 text-center text-xs text-zinc-500">
           {isNegative
-            ? 'Tocca un giorno per segnare o togliere una ricaduta.'
+            ? limited
+              ? 'Tocca un giorno per modificare quante volte è successo.'
+              : 'Tocca un giorno per segnare o togliere una ricaduta.'
             : habit.type === 'quantity'
               ? 'Tocca un giorno per modificarne il valore.'
               : 'Tocca un giorno per segnarlo come fatto o no.'}

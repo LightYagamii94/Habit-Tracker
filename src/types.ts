@@ -4,7 +4,7 @@ export type DateKey = string;
 /**
  * boolean: done / not done
  * quantity: a number with a daily target (e.g. 8 glasses of water)
- * negative: something to avoid; a day succeeds unless a relapse is logged
+ * negative: something to avoid; a day succeeds while the count stays within the daily limit (0 by default)
  */
 export type HabitType = 'boolean' | 'quantity' | 'negative';
 
@@ -22,8 +22,10 @@ export interface Habit {
   type: HabitType;
   /** Daily target, only for quantity habits. */
   target?: number;
-  /** Unit label, only for quantity habits (e.g. "bicchieri"). */
+  /** Unit label, for quantity habits and negative habits with a limit (e.g. "bicchieri", "dolci"). */
   unit?: string;
+  /** Negative habits only: how many times a day are allowed. Missing or 0: any time is a relapse. */
+  limit?: number;
   schedule: Schedule;
   /** First day the habit is tracked. Can be in the past to log earlier days. */
   startDate: DateKey;
@@ -37,7 +39,7 @@ export interface Habit {
 
 /**
  * One value per habit per day. Days without an entry count as 0.
- * boolean: 1 = done. quantity: the amount. negative: 1 = relapse.
+ * boolean: 1 = done. quantity: the amount. negative: how many times it happened.
  */
 export interface Entry {
   habitId: string;

@@ -116,3 +116,16 @@ describe('habitStats: times per week', () => {
     expect(habitStats(h, done('2026-10-18'), TODAY).current).toBe(1);
   });
 });
+
+describe('habitStats: negative with a limit', () => {
+  it('breaks the streak only above the limit', () => {
+    const h = habit({ type: 'negative', limit: 1, startDate: '2026-10-15' });
+    const e: Entry[] = [
+      { habitId: 'h', date: '2026-10-15', value: 1 },
+      { habitId: 'h', date: '2026-10-16', value: 3 }, // over the limit
+      { habitId: 'h', date: '2026-10-17', value: 1 },
+    ];
+    // 17, 18, 19 within the limit
+    expect(habitStats(h, e, TODAY)).toMatchObject({ current: 3, best: 3, relapses: 1, doneCount: 4 });
+  });
+});

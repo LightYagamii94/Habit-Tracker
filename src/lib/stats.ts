@@ -11,7 +11,7 @@ export interface HabitStats {
   rate: number | null;
   /** Days on which the habit was done (for negative habits: days without relapse). */
   doneCount: number;
-  /** Logged relapses (negative habits only). */
+  /** Days with a relapse, or over the limit (negative habits only). */
   relapses: number;
 }
 
@@ -79,7 +79,7 @@ export function habitStats(h: Habit, entries: Entry[], today: DateKey): HabitSta
     if (!isScheduledOn(h, d)) continue;
     const value = valueOf(d);
     const done = isDone(h, value);
-    if (h.type === 'negative' && value > 0) relapses++;
+    if (h.type === 'negative' && !done) relapses++;
     if (done) doneCount++;
     results.push({ date: d, done });
   }

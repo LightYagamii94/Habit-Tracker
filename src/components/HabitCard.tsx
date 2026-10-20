@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import type { DateKey } from '../types';
 import type { DayItem } from '../lib/habits';
-import { scheduleLabel } from '../lib/habits';
+import { hasLimit, scheduleLabel } from '../lib/habits';
 import { setEntry } from '../data/repo';
 import type { ReminderState } from '../lib/reminders';
 import { vibrate } from '../lib/presets';
@@ -32,7 +32,13 @@ export function HabitCard({ item, date, streak, reminder }: Props) {
       subtitle = `${formatNumber(value)} / ${formatNumber(habit.target ?? 1)} ${habit.unit ?? ''}`.trim();
       break;
     case 'negative':
-      subtitle = value > 0 ? 'Ricaduta registrata' : 'Nessuna ricaduta';
+      if (hasLimit(habit)) {
+        subtitle = done
+          ? `${formatNumber(value)} / max ${habit.limit} ${habit.unit ?? ''}`.trim()
+          : 'Oltre il limite';
+      } else {
+        subtitle = value > 0 ? 'Ricaduta registrata' : 'Nessuna ricaduta';
+      }
       break;
     default:
       subtitle =
@@ -44,7 +50,10 @@ export function HabitCard({ item, date, streak, reminder }: Props) {
     subtitle += ` · ${weekCount}/${habit.schedule.times} sett.`;
   }
 
-  const progress = habit.type === 'quantity' ? Math.min(1, value / (habit.target ?? 1)) : 0;
+  const limited = hasLimit(habit);
+  const progress =
+    habit.type === 'quantity' ? Math.min(1, value / (habit.target ?? 1)) : limited ? Math.min(1, value / habit.limit!) : 0;
+  const barColor = limited && !done ? '#f43f5e' : habit.color;
 
   return (
     <div
@@ -84,7 +93,7 @@ export function HabitCard({ item, date, streak, reminder }: Props) {
                 </span>
               )}
               <span
-                className={`truncate text-sm ${habit.type === 'negative' && value > 0 ? 'text-rose-400' : 'text-zinc-500'}`}
+                className={`truncate text-sm ${habit.type === 'negative' && !done ? 'text-rose-400' : 'text-zinc-500'}`}
               >
                 {subtitle}
               </span>
@@ -108,11 +117,16 @@ export function HabitCard({ item, date, streak, reminder }: Props) {
           </button>
         )}
 
-        {habit.type === 'quantity' && (
-          <QuantityControl value={value} color={habit.color} done={done} onChange={save} />
+        {(habit.type === 'quantity' || limited) && (
+          <QuantityControl
+            value={value}
+            color={barColor}
+            done={habit.type === 'quantity' && done}
+            onChange={save}
+          />
         )}
 
-        {habit.type === 'negative' && (
+        {habit.type === 'negative' && !limited && (
           <button
             onClick={() => save(value > 0 ? 0 : 1)}
             aria-pressed={value > 0}
@@ -126,11 +140,11 @@ export function HabitCard({ item, date, streak, reminder }: Props) {
         )}
       </div>
 
-      {habit.type === 'quantity' && (
+      {(habit.type === 'quantity' || limited) && (
         <div className="absolute inset-x-0 bottom-0 h-1 bg-zinc-800/60">
           <div
             className="h-full transition-[width] duration-300"
-            style={{ width: `${progress * 100}%`, backgroundColor: habit.color }}
+            style={{ width: `${progress * 100}%`, backgroundColor: barColor }}
           />
         </div>
       )}

@@ -1,7 +1,7 @@
 import type { CSSProperties } from 'react';
 import type { DateKey, Habit } from '../types';
 import { addMonthsKey, dayOfMonth, formatMonth, monthGrid, monthStartKey, WEEKDAY_LETTERS } from '../lib/dates';
-import { isActiveOn, isDone, isScheduledOn } from '../lib/habits';
+import { hasLimit, isActiveOn, isDone, isScheduledOn } from '../lib/habits';
 import { IconChevronLeft, IconChevronRight } from './icons';
 
 interface Props {
@@ -76,13 +76,13 @@ function DayCell({
   let state = 'non disponibile';
 
   if (editable) {
-    if (habit.type === 'negative' && value > 0) {
+    if (habit.type === 'negative' && !done) {
       className = 'bg-rose-500/20 text-rose-300';
-      state = 'ricaduta';
+      state = hasLimit(habit) ? `${value}, oltre il limite` : 'ricaduta';
     } else if (done) {
       className = 'font-semibold text-zinc-950';
       style = { backgroundColor: habit.color };
-      state = habit.type === 'negative' ? 'nessuna ricaduta' : 'fatto';
+      state = habit.type === 'negative' ? (hasLimit(habit) ? `${value}, entro il limite` : 'nessuna ricaduta') : 'fatto';
     } else if (habit.type === 'quantity' && value > 0) {
       const ratio = Math.min(1, value / (habit.target ?? 1));
       className = 'text-zinc-100';

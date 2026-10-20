@@ -25,6 +25,7 @@ interface FormState {
   startDate: string;
   reminderOn: boolean;
   reminderTime: string;
+  limit: number;
 }
 
 const emptyForm = (): FormState => ({
@@ -40,6 +41,7 @@ const emptyForm = (): FormState => ({
   startDate: todayKey(),
   reminderOn: false,
   reminderTime: '08:00',
+  limit: 0,
 });
 
 const formFromHabit = (h: Habit): FormState => ({
@@ -56,12 +58,13 @@ const formFromHabit = (h: Habit): FormState => ({
   startDate: h.startDate,
   reminderOn: h.reminderTime !== undefined,
   reminderTime: h.reminderTime ?? '08:00',
+  limit: h.limit ?? 0,
 });
 
 const TYPES: { value: HabitType; title: string; hint: string }[] = [
   { value: 'boolean', title: 'Sì/No', hint: 'Fatto o non fatto' },
   { value: 'quantity', title: 'Quantità', hint: 'Con un obiettivo' },
-  { value: 'negative', title: 'Da evitare', hint: 'Conta le ricadute' },
+  { value: 'negative', title: 'Da evitare', hint: 'Con o senza limite' },
 ];
 
 const SCHEDULES: { value: ScheduleKind; title: string }[] = [
@@ -141,7 +144,8 @@ export function HabitFormPage() {
       color: form.color,
       type: form.type,
       target: form.type === 'quantity' ? target : undefined,
-      unit: form.type === 'quantity' ? form.unit.trim() : undefined,
+      unit: form.type === 'quantity' || (form.type === 'negative' && form.limit > 0) ? form.unit.trim() : undefined,
+      limit: form.type === 'negative' && form.limit > 0 ? form.limit : undefined,
       schedule,
       startDate: form.startDate || todayKey(),
       reminderTime: withReminder ? form.reminderTime : undefined,
@@ -258,6 +262,52 @@ export function HabitFormPage() {
             />
           </Field>
         </div>
+      )}
+
+      {form.type === 'negative' && (
+        <Field
+          label="Limite al giorno"
+          hint={
+            form.limit === 0
+              ? 'Nessuna concessione: anche una volta sola è una ricaduta.'
+              : `Fino a ${form.limit} al giorno va bene; oltre, la giornata non è riuscita. Se cambi il limite, vale anche per i giorni già registrati.`
+          }
+        >
+          <div className="flex items-center justify-between rounded-2xl bg-zinc-900 p-2 pl-4 ring-1 ring-white/5">
+            <span className="font-medium">
+              {form.limit === 0 ? 'Nessuna' : `Massimo ${form.limit} ${form.limit === 1 ? 'volta' : 'volte'}`}
+            </span>
+            <div className="flex gap-1">
+              <button
+                type="button"
+                onClick={() => set('limit', Math.max(0, form.limit - 1))}
+                disabled={form.limit <= 0}
+                aria-label="Limite più basso"
+                className="grid size-10 place-items-center rounded-full bg-zinc-800 disabled:opacity-30"
+              >
+                <IconMinus />
+              </button>
+              <button
+                type="button"
+                onClick={() => set('limit', Math.min(99, form.limit + 1))}
+                aria-label="Limite più alto"
+                className="grid size-10 place-items-center rounded-full bg-zinc-800"
+              >
+                <IconPlus />
+              </button>
+            </div>
+          </div>
+          {form.limit > 0 && (
+            <input
+              value={form.unit}
+              onChange={(e) => set('unit', e.target.value)}
+              placeholder="Unità (facoltativa): dolci, sigarette, caffè…"
+              maxLength={20}
+              aria-label="Unità"
+              className="mt-2 h-12 w-full rounded-2xl bg-zinc-900 px-4 font-medium outline-none ring-1 ring-white/5 placeholder:text-zinc-600 focus:ring-2 focus:ring-emerald-400/60"
+            />
+          )}
+        </Field>
       )}
 
       <Field label="Frequenza">
