@@ -61,3 +61,9 @@ export async function setEntry(habitId: string, date: DateKey, value: number) {
   if (value <= 0) await db.entries.delete([habitId, date]);
   else await db.entries.put({ habitId, date, value });
 }
+
+/** Saves the day's note; an empty note without mood is removed. */
+export async function saveNote(date: DateKey, text: string, mood: number | undefined) {
+  if (!text.trim() && mood === undefined) await db.notes.delete(date);
+  else await db.notes.put({ date, text, mood });
+}

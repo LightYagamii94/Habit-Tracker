@@ -51,12 +51,17 @@ export interface DayItem {
 
 const entryKey = (habitId: string, date: DateKey) => `${habitId}|${date}`;
 
+/** Entry values by habit and day, for fast repeated lookups. */
+export type EntryIndex = Map<string, number>;
+export const indexEntries = (entries: Entry[]): EntryIndex =>
+  new Map(entries.map((e) => [entryKey(e.habitId, e.date), e.value]));
+
 /**
  * Builds the state of every habit active on `date`.
  * `entries` must contain at least the entries of the week (Mon–Sun) that holds `date`.
  */
-export function buildDayItems(habits: Habit[], entries: Entry[], date: DateKey): DayItem[] {
-  const values = new Map(entries.map((e) => [entryKey(e.habitId, e.date), e.value]));
+export function buildDayItems(habits: Habit[], entries: Entry[] | EntryIndex, date: DateKey): DayItem[] {
+  const values = entries instanceof Map ? entries : indexEntries(entries);
   const valueOf = (h: Habit, d: DateKey) => values.get(entryKey(h.id, d)) ?? 0;
   const week = weekKeys(date);
 
