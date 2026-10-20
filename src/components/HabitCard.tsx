@@ -4,6 +4,7 @@ import type { DateKey } from '../types';
 import type { DayItem } from '../lib/habits';
 import { scheduleLabel } from '../lib/habits';
 import { setEntry } from '../data/repo';
+import type { ReminderState } from '../lib/reminders';
 import { vibrate } from '../lib/presets';
 import { IconCheck, IconMinus, IconPlus, IconX } from './icons';
 
@@ -12,11 +13,13 @@ interface Props {
   date: DateKey;
   /** Current streak, shown as a badge when above zero. */
   streak?: { value: number; period: 'day' | 'week' };
+  /** Reminder for today, if the habit has a time set. */
+  reminder?: ReminderState;
 }
 
 const formatNumber = (n: number) => n.toLocaleString('it-IT', { maximumFractionDigits: 2 });
 
-export function HabitCard({ item, date, streak }: Props) {
+export function HabitCard({ item, date, streak, reminder }: Props) {
   const { habit, value, done, weekCount } = item;
   const save = (v: number) => {
     vibrate();
@@ -68,6 +71,16 @@ export function HabitCard({ item, date, streak }: Props) {
                 >
                   🔥 {streak.value}
                   {streak.period === 'week' ? ' sett.' : ''}
+                </span>
+              )}
+              {reminder && (
+                <span
+                  className={`shrink-0 rounded-full px-1.5 text-xs font-semibold tabular-nums ${
+                    reminder === 'overdue' ? 'bg-amber-400/15 text-amber-300' : 'bg-zinc-800 text-zinc-400'
+                  }`}
+                  aria-label={reminder === 'overdue' ? `In ritardo, promemoria alle ${habit.reminderTime}` : `Promemoria alle ${habit.reminderTime}`}
+                >
+                  ⏰ {habit.reminderTime}
                 </span>
               )}
               <span

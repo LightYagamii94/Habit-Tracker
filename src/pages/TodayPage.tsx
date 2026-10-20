@@ -10,12 +10,16 @@ import { useToday } from '../lib/useToday';
 import { HabitCard } from '../components/HabitCard';
 import { InstallBanner } from '../components/InstallBanner';
 import { DayNoteCard } from '../components/DayNoteCard';
+import { BackupNudge } from '../components/BackupNudge';
+import { reminderState } from '../lib/reminders';
+import { useNowMinutes } from '../lib/useNow';
 import { ProgressRing } from '../components/ProgressRing';
 import { WeekStrip } from '../components/WeekStrip';
 import { IconCalendar, IconChevronDown, IconPlus } from '../components/icons';
 
 export function TodayPage() {
   const today = useToday();
+  const now = useNowMinutes();
   const [params, setParams] = useSearchParams();
   const param = params.get('d');
   const selected: DateKey = param && DATE_KEY_RE.test(param) && param <= today ? param : today;
@@ -59,6 +63,8 @@ export function TodayPage() {
   if (!view) return null;
   const { due, others, streaks, progress, isEmptyDay, weekProgress, hasHabits } = view;
   const remaining = progress.due - progress.done;
+  const reminderOf = (item: (typeof due)[number]) => (selected === today ? reminderState(item, now) : null);
+  const overdue = due.filter((i) => reminderOf(i) === 'overdue');
   const label = relativeDayLabel(selected, today);
 
   return (
@@ -97,6 +103,8 @@ export function TodayPage() {
 
       <InstallBanner />
 
+      {hasHabits && <BackupNudge today={today} hasData={hasHabits} />}
+
       <WeekStrip selected={selected} today={today} progress={weekProgress} onSelect={select} />
 
       {!hasHabits ? (
@@ -134,9 +142,21 @@ export function TodayPage() {
             </div>
           </section>
 
+          {overdue.length > 0 && (
+            <p role="status" className="rounded-3xl bg-amber-400/10 px-4 py-3 text-sm text-amber-100 ring-1 ring-amber-400/30">
+              ⏰ È ora di: <span className="font-semibold">{overdue.map((i) => i.habit.name).join(', ')}</span>
+            </p>
+          )}
+
           <section className="space-y-2.5">
             {due.map((item) => (
-              <HabitCard key={item.habit.id} item={item} date={selected} streak={streaks.get(item.habit.id)} />
+              <HabitCard
+                key={item.habit.id}
+                item={item}
+                date={selected}
+                streak={streaks.get(item.habit.id)}
+                reminder={reminderOf(item)}
+              />
             ))}
           </section>
 

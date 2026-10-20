@@ -52,8 +52,18 @@ React + TypeScript + Vite + Tailwind, Dexie (IndexedDB), date-fns, vite-plugin-p
 1. ✅ Struttura, gestione abitudini, schermata Oggi, PWA
 2. ✅ Streak, calendario, dettaglio abitudine
 3. ✅ Statistiche, grafici, note e umore
-4. Backup JSON (export/import), rifinitura, promemoria dentro l'app
+4. ✅ Backup (scarica, condividi, importa), promemoria dentro l'app, pagina Impostazioni
 5. (opzionale) Notifiche push tramite un piccolo server (es. Cloudflare Worker) che conosce solo gli orari
+
+### Backup (`src/lib/backup.ts`, `src/lib/backupFile.ts`)
+- File JSON con `app: "habit-tracker"`, `version`, abitudini, registrazioni e note. Per la condivisione diventa un `.txt`
+  con lo stesso contenuto (Chrome su Android non condivide i `.json`); l'importazione accetta entrambi.
+- L'importazione controlla il file e sostituisce tutti i dati in una sola transazione.
+- Promemoria di backup come in Spese: l'ultimo giorno del mese, o se manca quello di fine mese scorso.
+
+### Promemoria (`src/lib/reminders.ts`)
+- Orario facoltativo per abitudine (non per quelle da evitare). Da quell'ora, se l'abitudine è dovuta oggi e non è fatta,
+  Oggi mostra "È ora di…" e l'orario in evidenza sulla card. Funziona ad app aperta; le notifiche push sono la fase 5.
 
 ### Note
 - Il browser può cancellare i dati locali: l'app chiede l'archiviazione persistente, ma conviene installarla e fare backup.

@@ -31,6 +31,8 @@ export interface Habit {
   archivedAt: DateKey | null;
   order: number;
   createdAt: string;
+  /** "HH:MM": from this time the app shows a reminder if the habit is not done yet. */
+  reminderTime?: string;
 }
 
 /**

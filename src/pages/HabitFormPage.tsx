@@ -6,6 +6,7 @@ import { todayKey, WEEKDAY_SHORT } from '../lib/dates';
 import { COLORS, ICONS } from '../lib/presets';
 import { createHabit, deleteHabit, setArchived, updateHabit, type HabitInput } from '../data/repo';
 import { ConfirmDialog } from '../components/ConfirmDialog';
+import { TIME_RE } from '../lib/backup';
 import { IconArchive, IconCheck, IconChevronLeft, IconMinus, IconPlus, IconRestore, IconTrash } from '../components/icons';
 
 type ScheduleKind = Schedule['kind'];
@@ -21,6 +22,8 @@ interface FormState {
   days: number[];
   times: number;
   startDate: string;
+  reminderOn: boolean;
+  reminderTime: string;
 }
 
 const emptyForm = (): FormState => ({
@@ -34,6 +37,8 @@ const emptyForm = (): FormState => ({
   days: [1, 2, 3, 4, 5],
   times: 3,
   startDate: todayKey(),
+  reminderOn: false,
+  reminderTime: '08:00',
 });
 
 const formFromHabit = (h: Habit): FormState => ({
@@ -48,6 +53,8 @@ const formFromHabit = (h: Habit): FormState => ({
   days: h.schedule.kind === 'weekdays' ? h.schedule.days : [1, 2, 3, 4, 5],
   times: h.schedule.kind === 'timesPerWeek' ? h.schedule.times : 3,
   startDate: h.startDate,
+  reminderOn: h.reminderTime !== undefined,
+  reminderTime: h.reminderTime ?? '08:00',
 });
 
 const TYPES: { value: HabitType; title: string; hint: string }[] = [
@@ -117,6 +124,8 @@ export function HabitFormPage() {
     const target = Number(form.target.replace(',', '.'));
     if (form.type === 'quantity' && !(target > 0)) return setError("L'obiettivo deve essere maggiore di zero.");
     if (form.scheduleKind === 'weekdays' && form.days.length === 0) return setError('Scegli almeno un giorno.');
+    const withReminder = form.type !== 'negative' && form.reminderOn;
+    if (withReminder && !TIME_RE.test(form.reminderTime)) return setError("Scegli l'orario del promemoria.");
 
     const schedule: Schedule =
       form.scheduleKind === 'weekdays'
@@ -134,6 +143,7 @@ export function HabitFormPage() {
       unit: form.type === 'quantity' ? form.unit.trim() : undefined,
       schedule,
       startDate: form.startDate || todayKey(),
+      reminderTime: withReminder ? form.reminderTime : undefined,
     };
 
     if (isNew) await createHabit(input);
@@ -342,6 +352,41 @@ export function HabitFormPage() {
           </div>
         )}
       </Field>
+
+      {form.type !== 'negative' && (
+        <Field
+          label="Promemoria"
+          hint="Da quest'ora, se non l'hai ancora fatta, l'app te lo ricorda quando la apri. Le notifiche ad app chiusa arriveranno più avanti."
+        >
+          <div className="flex items-center gap-3 rounded-2xl bg-zinc-900 p-2 pl-4 ring-1 ring-white/5">
+            <label className="flex flex-1 cursor-pointer items-center gap-3">
+              <input
+                type="checkbox"
+                checked={form.reminderOn}
+                onChange={(e) => {
+                  set('reminderOn', e.target.checked);
+                  setError(null);
+                }}
+                className="peer sr-only"
+              />
+              <span
+                aria-hidden="true"
+                className="relative h-7 w-12 shrink-0 rounded-full bg-zinc-700 transition-colors peer-checked:bg-emerald-400 peer-focus-visible:ring-2 peer-focus-visible:ring-emerald-400/60 after:absolute after:top-1 after:left-1 after:size-5 after:rounded-full after:bg-white after:transition-transform peer-checked:after:translate-x-5"
+              />
+              <span className="font-medium">{form.reminderOn ? 'Attivo' : 'Disattivato'}</span>
+            </label>
+            {form.reminderOn && (
+              <input
+                type="time"
+                value={form.reminderTime}
+                onChange={(e) => set('reminderTime', e.target.value)}
+                aria-label="Orario del promemoria"
+                className="h-11 rounded-xl bg-zinc-800 px-3 font-medium outline-none focus:ring-2 focus:ring-emerald-400/60"
+              />
+            )}
+          </div>
+        </Field>
+      )}
 
       <Field label="Data di inizio" hint="Scegli una data passata per registrare anche i giorni precedenti.">
         <input

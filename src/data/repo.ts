@@ -1,5 +1,5 @@
 import { db } from '../db';
-import type { DateKey, Habit } from '../types';
+import type { DateKey, DayNote, Entry, Habit } from '../types';
 
 export type HabitInput = Omit<Habit, 'id' | 'order' | 'createdAt' | 'archivedAt'>;
 
@@ -66,4 +66,26 @@ export async function setEntry(habitId: string, date: DateKey, value: number) {
 export async function saveNote(date: DateKey, text: string, mood: number | undefined) {
   if (!text.trim() && mood === undefined) await db.notes.delete(date);
   else await db.notes.put({ date, text, mood });
+}
+
+export async function exportAll() {
+  const [habits, entries, notes] = await Promise.all([db.habits.toArray(), db.entries.toArray(), db.notes.toArray()]);
+  return { habits, entries, notes };
+}
+
+/** Replaces everything with the given data, all or nothing. */
+export async function replaceAll(data: { habits: Habit[]; entries: Entry[]; notes: DayNote[] }) {
+  await db.transaction('rw', db.habits, db.entries, db.notes, async () => {
+    await Promise.all([db.habits.clear(), db.entries.clear(), db.notes.clear()]);
+    await db.habits.bulkAdd(data.habits);
+    await db.entries.bulkPut(data.entries);
+    await db.notes.bulkPut(data.notes);
+  });
+  void requestPersistentStorage();
+}
+
+export async function clearAll() {
+  await db.transaction('rw', db.habits, db.entries, db.notes, async () => {
+    await Promise.all([db.habits.clear(), db.entries.clear(), db.notes.clear()]);
+  });
 }

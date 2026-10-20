@@ -4,6 +4,7 @@ import { HabitDetailPage } from './pages/HabitDetailPage';
 import { HabitFormPage } from './pages/HabitFormPage';
 import { HabitsPage } from './pages/HabitsPage';
 import { StatsPage } from './pages/StatsPage';
+import { SettingsPage } from './pages/SettingsPage';
 import { TodayPage } from './pages/TodayPage';
 
 export function App() {
@@ -18,6 +19,7 @@ export function App() {
           <Route path="/abitudini/:id" element={<HabitDetailPage />} />
           <Route path="/abitudini/:id/modifica" element={<HabitFormPage />} />
           <Route path="/statistiche" element={<StatsPage />} />
+          <Route path="/impostazioni" element={<SettingsPage />} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </main>
