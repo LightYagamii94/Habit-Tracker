@@ -29,7 +29,7 @@ export function MonthCalendar({ habit, values, month, today, onMonthChange, onDa
         >
           <IconChevronLeft />
         </button>
-        <span className="font-semibold">{formatMonth(month)}</span>
+        <span className="min-w-0 truncate text-center font-semibold">{formatMonth(month)}</span>
         <button
           onClick={() => onMonthChange(addMonthsKey(month, 1))}
           disabled={!canGoNext}

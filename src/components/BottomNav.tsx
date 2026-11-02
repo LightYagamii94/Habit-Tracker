@@ -18,13 +18,13 @@ export function BottomNav() {
             to={to}
             end={end}
             className={({ isActive }) =>
-              `flex flex-col items-center gap-1 py-3 text-xs font-medium transition-colors ${
+              `flex min-w-0 flex-col items-center gap-1 px-1 py-3 text-xs font-medium transition-colors ${
                 isActive ? 'text-emerald-400' : 'text-zinc-500 hover:text-zinc-300'
               }`
             }
           >
-            <Icon className="size-6" />
-            {label}
+            <Icon className="size-6 shrink-0" />
+            <span className="max-w-full truncate">{label}</span>
           </NavLink>
         ))}
       </div>

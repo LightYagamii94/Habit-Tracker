@@ -274,7 +274,7 @@ export function HabitFormPage() {
           }
         >
           <div className="flex items-center justify-between rounded-2xl bg-zinc-900 p-2 pl-4 ring-1 ring-white/5">
-            <span className="font-medium">
+            <span className="min-w-0 font-medium">
               {form.limit === 0 ? 'Nessuna' : `Massimo ${form.limit} ${form.limit === 1 ? 'volta' : 'volte'}`}
             </span>
             <div className="flex gap-1">
@@ -364,7 +364,7 @@ export function HabitFormPage() {
 
         {form.scheduleKind === 'timesPerWeek' && (
           <div className="mt-3 flex items-center justify-between rounded-2xl bg-zinc-900 p-2 pl-4 ring-1 ring-white/5">
-            <span className="font-medium">
+            <span className="min-w-0 font-medium">
               {form.times} {form.times === 1 ? 'volta' : 'volte'} a settimana
             </span>
             <div className="flex gap-1">
@@ -397,7 +397,7 @@ export function HabitFormPage() {
           hint="Da quest'ora, se non l'hai ancora fatta, l'app te lo ricorda quando la apri. Le notifiche ad app chiusa arriveranno più avanti."
         >
           <div className="flex items-center gap-3 rounded-2xl bg-zinc-900 p-2 pl-4 ring-1 ring-white/5">
-            <label className="flex flex-1 cursor-pointer items-center gap-3">
+            <label className="flex min-w-0 flex-1 cursor-pointer items-center gap-3">
               <input
                 type="checkbox"
                 checked={form.reminderOn}
@@ -411,7 +411,7 @@ export function HabitFormPage() {
                 aria-hidden="true"
                 className="relative h-7 w-12 shrink-0 rounded-full bg-zinc-700 transition-colors peer-checked:bg-emerald-400 peer-focus-visible:ring-2 peer-focus-visible:ring-emerald-400/60 after:absolute after:top-1 after:left-1 after:size-5 after:rounded-full after:bg-white after:transition-transform peer-checked:after:translate-x-5"
               />
-              <span className="font-medium">{form.reminderOn ? 'Attivo' : 'Disattivato'}</span>
+              <span className="min-w-0 truncate font-medium">{form.reminderOn ? 'Attivo' : 'Disattivato'}</span>
             </label>
             {form.reminderOn && (
               <input
