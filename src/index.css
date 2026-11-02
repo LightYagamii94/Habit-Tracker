@@ -9,6 +9,12 @@
   -webkit-tap-highlight-color: transparent;
 }
 
+/* The page can never be wider than the screen: otherwise phones let you zoom out
+   and the fixed bottom bar slides away. */
+html {
+  overflow-x: hidden;
+}
+
 html,
 body {
   background: var(--color-zinc-950);
